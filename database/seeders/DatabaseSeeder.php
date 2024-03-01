@@ -18,5 +18,16 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
+        $start_time = microtime(true);
+        $this->call([
+            UserSeeder::class,
+        ]);
+
+        $end_time = microtime(true);
+        $total_time = $end_time - $start_time;
+
+        if ($total_time < 60) dump('Execution time of seeders = ' . $total_time . ' sec');
+
+        dump('Execution time of seeders = ' . ($total_time / 60) . ' min');
     }
 }
