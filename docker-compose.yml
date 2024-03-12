@@ -1,7 +1,7 @@
 services:
     laravel.test:
         build:
-            context: ./vendor/laravel/sail/runtimes/8.3
+            context: ./docker/8.3
             dockerfile: Dockerfile
             args:
                 WWWGROUP: '${WWWGROUP}'
@@ -26,17 +26,17 @@ services:
     mysql:
         image: 'mysql/mysql-server:8.0'
         ports:
-            - '${FORWARD_DB_PORT:-3306}:3306'
+            - '${MYSQL_DB_PORT:-3306}:3306'
         environment:
-            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ROOT_PASSWORD: '${MYSQL_DB_PASSWORD}'
             MYSQL_ROOT_HOST: '%'
-            MYSQL_DATABASE: '${DB_DATABASE}'
-            MYSQL_USER: '${DB_USERNAME}'
-            MYSQL_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_DATABASE: '${MYSQL_DB_DATABASE}'
+            MYSQL_USER: '${MYSQL_DB_USERNAME}'
+            MYSQL_PASSWORD: '${MYSQL_DB_PASSWORD}'
             MYSQL_ALLOW_EMPTY_PASSWORD: 1
         volumes:
             - 'sail-mysql:/var/lib/mysql'
-            - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+            - './docker/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
         networks:
             - sail
         healthcheck:
@@ -55,11 +55,11 @@ services:
             - mysql
         environment:
             PMA_HOST: mysql
-            PMA_PORT: ${DB_PORT:-3306}
+            PMA_PORT: ${MYSQL_DB_PORT:-3306}
             PMA_ARBITRARY: 1
             restart: always
         ports:
-            - '${PHPMYADMIN_PORT-8081}:80'
+            - '${PHPMYADMIN_PORT-8080}:80'
         networks:
             - sail
         extra_hosts:
@@ -67,6 +67,72 @@ services:
         depends_on:
             - mysql
         restart: always
+    pgsql:
+        image: 'postgres:15'
+        ports:
+            - '${PGSQL_DB_PORT:-5432}:5432'
+        environment:
+            PGPASSWORD: '${PGSQL_DB_PASSWORD:-secret}'
+            POSTGRES_DB: '${PGSQL_DB_DATABASE}'
+            POSTGRES_USER: '${PGSQL_DB_USERNAME}'
+            POSTGRES_PASSWORD: '${PGSQL_DB_PASSWORD:-secret}'
+        volumes:
+            - 'sail-pgsql:/var/lib/postgresql/data'
+            - './docker/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
+        networks:
+            - sail
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        healthcheck:
+            test: [ "CMD", "pg_isready", "-q", "-d", "${PGSQL_DB_DATABASE}", "-U", "${PGSQL_DB_USERNAME}" ]
+            retries: 3
+            timeout: 5s
+        restart: always
+    pgadmin:
+        image: dpage/pgadmin4
+        restart: always
+        environment: # Use <host.docker.internal> as the host name when creating the server in pgadmin
+            PGADMIN_DEFAULT_EMAIL: '${PG_ADMIN_EMAIL:-admin@admin.com}'
+            PGADMIN_DEFAULT_PASSWORD: '${PG_ADMIN_PASSWORD:-root}'
+        ports:
+            - "5050:80"
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        depends_on:
+            - pgsql
+        networks:
+            - sail
+        volumes:
+            - 'sail-pgadmin:/var/lib/pgadmin'
+    redis:
+        image: 'redis:alpine'
+        restart: always
+        ports:
+            - '${REDIS_PORT:-6379}:6379'
+        volumes:
+            - 'sail-redis:/data'
+        networks:
+            - sail
+        healthcheck:
+            test: [ "CMD", "redis-cli", "ping" ]
+            retries: 3
+            timeout: 5s
+    memcached:
+        restart: always
+        image: 'memcached:alpine'
+        ports:
+            - '${MEMCACHED_PORT:-11211}:11211'
+        networks:
+            - sail
+    mailhog:
+        restart: always
+        image: 'mailhog/mailhog:latest'
+        platform: 'linux/amd64'
+        ports:
+            - '${MAILHOG_PORT:-1025}:1025'
+            - '${MAILHOG_DASHBOARD_PORT:-8025}:8025'
+        networks:
+            - sail
 networks:
     sail:
         driver: bridge
@@ -74,4 +140,8 @@ volumes:
     sail-mysql:
         driver: local
     sail-pgadmin:
+        driver: local
+    sail-pgsql:
+        driver: local
+    sail-redis:
         driver: local
