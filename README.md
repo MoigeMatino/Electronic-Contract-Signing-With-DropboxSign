@@ -4,15 +4,13 @@ This repository provides an API for integrating document signing with [Dropbox S
 
 ## Features
 
-- **Document Signing:** Enable users to electronically sign documents containing terms and conditions with ease.
-- **Dropbox Sign Integration:** Seamlessly integrate with Dropbox Hello to streamline document management and signing processes.
+-   **Document Signing:** Enable users to electronically sign documents containing terms and conditions with ease.
+-   **Dropbox Sign Integration:** Seamlessly integrate with Dropbox Hello to streamline document management and signing processes.
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
 
+## Plan
 
-
-
-
-
+![plan](./plan_paper.jpg)

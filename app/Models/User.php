@@ -42,4 +42,14 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function envelopes()
+    {
+        return $this->hasMany(Envelope::class, 'EnvelopeId');
+    }
+
+    public function documents()
+    {
+        return $this->hasManyThrough(EnvelopeDocument::class, Envelope::class, 'EnvelopeId', 'EnvelopeId', 'id', 'EnvelopeId');
+    }
 }
