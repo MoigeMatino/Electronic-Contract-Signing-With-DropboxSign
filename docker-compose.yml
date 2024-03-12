@@ -44,7 +44,7 @@ services:
                 - CMD
                 - mysqladmin
                 - ping
-                - '-p${DB_PASSWORD}'
+                - '-p${MYSQL_DB_PASSWORD}'
             retries: 3
             timeout: 5s
     phpmyadmin:
