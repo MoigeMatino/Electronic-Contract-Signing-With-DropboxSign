@@ -1,4 +1,4 @@
-# eSignify API - Easy Terms Signing with Dropbox Sign
+# eSignify API - Easy Contract Signing with Dropbox Sign
 
 This repository provides an API for integrating document signing with [Dropbox Sign](https://sign.dropbox.com/) (formerly known as HelloSign) into your applications. It allows users to easily sign documents containing terms and conditions.
 
